@@ -199,8 +199,8 @@ The debug-reach skill lets the AI agent control nvim's debugger. It ships with v
 # If you installed NvGuy, the skill is already bundled
 # Otherwise, grab it from vscodium.nvim:
 git clone https://github.com/guysoft/vscodium.nvim.git /tmp/vscodium-nvim
-mkdir -p ~/.opencode/skills
-cp -r /tmp/vscodium-nvim/.opencode/skills/debug-reach ~/.opencode/skills/
+mkdir -p ~/.config/opencode/skills
+cp -r /tmp/vscodium-nvim/.opencode/skills/debug-reach ~/.config/opencode/skills/
 ```
 
 ### Use it

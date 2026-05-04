@@ -37,13 +37,32 @@ Works on Linux, macOS, and Windows (WSL).
 ### 1. tmux + plugins
 
 ```bash
-# Install tpack (plugin manager)
-brew install tmuxpack/tpack/tpack
+# --- 1a. Backup any existing tmux config ---
+[ -f ~/.tmux.conf ] && cp ~/.tmux.conf ~/.tmux.conf.bak.$(date +%Y%m%d-%H%M%S)
 
-# Clone the IDE layout plugin
-git clone https://github.com/guysoft/tmux-ide ~/.tmux/plugins/tmux-ide
+# --- 1b. Install tpack (plugin manager) ---
+# macOS:
+brew install tmuxpack/tpack/tpack
+# Linux / anywhere with Go:
+#   go install github.com/tmuxpack/tpack@latest
+#   # tpack lands in $GOPATH/bin (typically ~/go/bin) — make sure it's on PATH
+#   # or reference the absolute path in ~/.tmux.conf as shown below.
+
+# --- 1c. Drop in the canonical ~/.tmux.conf ---
+# Copy from the "Complete tmux.conf reference" block at the bottom of this README
+# into ~/.tmux.conf. The file *must* end with `run '~/go/bin/tpack init'`
+# (or `run 'tpack init'` if tpack is on your PATH).
+
+# --- 1d. Install all declared plugins ---
+# Either run tpack directly:
+tpack install              # or: ~/go/bin/tpack install
+# Or, from inside a running tmux session:  prefix + I   (capital i)
+
+# --- 1e. Wire up the IDE layout helper ---
 ~/.tmux/plugins/tmux-ide/install.sh
 ```
+
+> **Heads-up:** if a tmux server is already running with a different prefix, kill it before reloading: `tmux kill-server`. Then `tmux` to start fresh.
 
 ### 2. NvGuy (neovim distribution)
 
@@ -244,6 +263,11 @@ set -g prefix C-a
 unbind C-b
 bind C-a send-prefix
 
+# Reload config with prefix-r
+unbind r
+bind r source-file ~/.tmux.conf
+
+# vim-style mode keys + pane navigation
 setw -g mode-keys vi
 bind-key h select-pane -L
 bind-key j select-pane -D
@@ -252,24 +276,28 @@ bind-key l select-pane -R
 
 set -g mouse on
 
-# Plugins
-set -g @plugin 'tmux-plugins/tmux-resurrect'
-set -g @plugin 'tmux-plugins/tmux-continuum'
-set -g @plugin 'guysoft/tmux-resurrect-opencode-sessions'
-set -g @plugin 'christoomey/vim-tmux-navigator'
-set -g @plugin 'guysoft/tmux-ide'
-
-# Session restore
-set -g @continuum-restore 'on'
-set -g @resurrect-processes '~opencode'
+# Clipboard
+bind-key -T copy-mode-vi y send-keys -X copy-selection-and-cancel
+bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-and-cancel
 
 # Pane creation in current directory
 bind c new-window -c "#{pane_current_path}"
 bind '"' split-window -v -c "#{pane_current_path}"
 bind % split-window -h -c "#{pane_current_path}"
 
-# Initialize tpack (keep at very bottom)
-run 'tpack init'
+# === Plugins ===
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @plugin 'christoomey/vim-tmux-navigator'
+set -g @plugin 'guysoft/tmux-resurrect-opencode-sessions'
+set -g @plugin 'guysoft/tmux-ide'
+
+# Session restore (continuum auto-saves every 15 min)
+set -g @continuum-restore 'on'
+set -g @resurrect-processes '~opencode'
+
+# Initialize tpack (must stay at very bottom)
+run '~/go/bin/tpack init'
 ```
 
 </details>

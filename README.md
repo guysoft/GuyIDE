@@ -1,12 +1,12 @@
 # GuyIDE
 
-A modular terminal IDE framework: **tmux** as the window manager, **neovim** as the editor/debugger, and an **AI coding agent** — all working together through shared RPC and session continuity.
+A modular terminal IDE where your AI agent can **control the debugger**, your sessions **survive restarts**, and everything runs in the terminal.
 
 ```
 +---------------------------+--------------+
 |                           |              |
-|   nvim (editor/debugger)  |   opencode   |
-|   NvGuy distro            |   (AI agent) |
+|   nvim (editor/debugger)  |   AI agent   |
+|                           |              |
 |                           |              |
 |---------------------------|              |
 |   terminal                |              |
@@ -14,144 +14,225 @@ A modular terminal IDE framework: **tmux** as the window manager, **neovim** as 
 +---------------------------+--------------+
 ```
 
-One keybinding (`Ctrl-a e`) creates this layout. Close your laptop, reopen it — everything is exactly where you left off: editor session, AI conversation, terminal state.
+One keybinding. Full IDE. Close your laptop, reopen — everything is exactly where you left off.
 
 ---
 
-## Breakthrough Features
+## Why GuyIDE?
 
-These are things no other terminal IDE setup can do:
+**Your AI can debug for you.** Tell it "find why `process_data()` returns None" and it will set breakpoints, run the debugger, inspect variables, and report back what's wrong. No other terminal setup can do this.
 
-### AI-Controlled Debugging (debug-reach)
+**Sessions survive anything.** Editor state, AI conversation, terminal working directory — all restored automatically after a crash or reboot. Like Cursor's session restore, but in the terminal.
 
-Your AI agent can **programmatically control the debugger**. It sets breakpoints, launches debug sessions, steps through code, and inspects variable state — all via neovim's RPC socket exposed through tmux. The AI can literally stop your program at a suspicious line, read the local variables, and tell you what's wrong.
+**The AI sees what you see.** It shares your tmux session — it can read build output, test failures, and server logs from the terminal pane and react to them.
 
+**Everything is swappable.** Don't like neovim? Use Emacs. Prefer Claude Code over OpenCode? One config line. The workflow is the product.
+
+---
+
+## Quick Start
+
+Works on Linux, macOS, and Windows (WSL).
+
+### 1. tmux + plugins
+
+```bash
+# Install tpack (plugin manager)
+brew install tmuxpack/tpack/tpack
+
+# Clone the IDE layout plugin
+git clone https://github.com/guysoft/tmux-ide ~/.tmux/plugins/tmux-ide
+~/.tmux/plugins/tmux-ide/install.sh
 ```
-Agent (OpenCode)                    Neovim (nvim-dap)
-     |                                    |
-     |-- set breakpoint file.py:42 ------>|
-     |-- launch debug session ----------->|
-     |                                    | (hits breakpoint)
-     |<-- stopped at line 42, reason: bp -|
-     |-- evaluate expression "x" -------->|
-     |<-- x = {"corrupted": true} --------|
-     |                                    |
-     "Found it — x is corrupted at line 42"
+
+### 2. NvGuy (neovim distribution)
+
+```bash
+mv ~/.config/nvim ~/.config/nvim.bak  # backup existing config
+git clone https://github.com/guysoft/NvGuy.git ~/.config/nvim
+nvim  # plugins install automatically on first launch
 ```
 
-No other terminal setup offers this. The AI doesn't just read your code — it runs your code under a debugger and finds the exact state that causes bugs.
+### 3. OpenCode (AI agent)
 
-### Session Continuity Across Restarts
+```bash
+curl -fsSL https://opencode.ai/install | bash
+```
 
-Like Cursor or VSCode's session restore, but for the terminal:
+### 4. Launch
 
-- **tmux-resurrect** saves and restores the full pane layout
-- **tmux-resurrect-opencode-sessions** resumes the exact AI conversation (not a fresh session — the same one, with full context)
-- **possession.nvim** auto-restores your editor session per directory (open files, cursor positions, undo history)
-- **tmux-continuum** auto-saves every 15 minutes
-
-Your laptop dies. You reboot. `tmux` starts. Everything is back — the AI remembers what you were debugging, nvim has your files open, the terminal is in the right directory.
-
-### AI Reads Your Terminal
-
-The AI agent shares the tmux session. It can read output from the terminal pane (build errors, test results, server logs) and react. It sees what you see.
-
-### Shared RPC Bridge
-
-The `NVIM_IDE_SOCK` environment variable exposes neovim's RPC socket to all panes in the tmux session. Any process (including the AI agent) can programmatically control the editor — jump to files, set breakpoints, read buffer contents, trigger commands.
+```bash
+tmux
+cd ~/your-project
+# Press Ctrl-a e — IDE layout appears
+```
 
 ---
 
 ## Features
 
-- **3-pane IDE layout** with one keybinding (`Ctrl-a e`)
-- **VSCode-compatible** `.vscode/launch.json` for Run and Debug configurations
-- **Full DAP debugger** with UI panels (scopes, watches, stack frames, console)
-- **Menu bar in neovim** (`F10` or `<leader>m`) — File, Edit, View, Git, Run, Tools, Window, and more
-- **Session auto-save/restore** per project directory
-- **Vim-style pane navigation** (`h/j/k/l` between tmux panes)
-- **Mouse support** enabled
-- **Git integration** — Neogit (magit-style), Gitsigns, Telescope git pickers
-- **LSP + completion** via Mason, nvim-lspconfig, nvim-cmp
-- **Code minimap** sidebar
-- **Tmux prefix**: `Ctrl-a` (screen-style)
+### Breakthrough
+
+| Feature | What it does |
+|---------|-------------|
+| **AI-controlled debugging** | The AI sets breakpoints, launches the debugger, inspects variable state, and reports findings — all programmatically via RPC |
+| **Full session continuity** | Layout, editor session, AI conversation, and terminal state all survive restarts. Auto-saves every 15 minutes |
+| **AI terminal observability** | The agent reads your terminal pane — it sees build errors, test output, and logs as they happen |
+| **Shared editor bridge** | Any process in the tmux session can control neovim via the exposed RPC socket (`NVIM_IDE_SOCK`) |
+
+### Standard
+
+- 3-pane IDE layout with one keybinding (`Ctrl-a e`)
+- VSCode-compatible `.vscode/launch.json` for Run and Debug configurations
+- Full DAP debugger with UI panels (scopes, watches, stack frames, console)
+- Menu bar in neovim (`F10` or `<leader>m`) — File, Edit, View, Git, Run, Tools, Window, and more
+- Session auto-save/restore per project directory
+- Vim-style pane navigation between tmux and nvim (`h/j/k/l`)
+- Mouse support enabled
+- Git integration — Neogit (magit-style UI), Gitsigns (inline blame, hunk ops), Telescope git pickers
+- LSP + completion via Mason, nvim-lspconfig, nvim-cmp
+- Treesitter syntax highlighting
+- Code minimap sidebar
+- File explorer (nvim-tree)
+- Fuzzy finder for files, buffers, symbols, diagnostics (Telescope)
+- Code formatting via conform.nvim
+- Tmux prefix: `Ctrl-a` (screen-style)
+
+---
+
+## Screenshots
+
+<!-- TODO: Add screenshots -->
+
+| Feature | Screenshot |
+|---------|-----------|
+| IDE Layout | ![IDE Layout](screenshots/ide-layout.png) |
+| AI Debugging | ![Debug Reach](screenshots/debug-reach.png) |
+| Menu Bar | ![Menu Bar](screenshots/menu-bar.png) |
+| Session Restore | ![Session Restore](screenshots/session-restore.png) |
+| Debug UI | ![Debug UI](screenshots/debug-ui.png) |
+
+---
+
+## Key Bindings
+
+### tmux (prefix: `Ctrl-a`)
+
+| Binding | Action |
+|---------|--------|
+| `Ctrl-a e` | Create IDE layout |
+| `Ctrl-a h/j/k/l` | Navigate panes |
+| `Ctrl-a c` | New window |
+| `Ctrl-a Ctrl-s` | Save session |
+| `Ctrl-a Ctrl-r` | Restore session |
+
+### Neovim
+
+| Binding | Action |
+|---------|--------|
+| `F10` | Menu bar |
+| `F5` | Run |
+| `F6` | Debug |
+| `F9` | Toggle breakpoint |
+| `F11` / `Shift-F11` | Step into / out |
+| `Shift-F5` | Stop debugger |
 
 ---
 
 ## Architecture
 
-GuyIDE is three independent layers. Each is replaceable:
+Three independent, replaceable layers:
 
-| Layer | Default | Role | Alternatives |
-|-------|---------|------|--------------|
-| **Window Manager** | tmux | Holds the framework, manages panes/sessions | zellij, screen |
-| **Editor** | NvGuy (neovim distro) | Code editing, debugging, LSP, menus | Emacs, Helix, vim |
-| **AI Agent** | OpenCode | AI coding assistant with terminal access | Claude Code, Aider, Goose, Cursor (via terminal) |
+| Layer | Default | Alternatives |
+|-------|---------|--------------|
+| **Window Manager** | tmux | zellij, screen |
+| **Editor** | NvGuy (neovim) | Emacs, Helix, Vim |
+| **AI Agent** | OpenCode | Claude Code, Aider, Goose |
 
-The **workflow** is the product, not any single tool. The key insight: the AI agent lives in a tmux pane alongside your editor and terminal. It can:
-- Read tmux pane content (see build output, test results)
-- Send commands to the terminal pane
-- Control the editor via RPC (set breakpoints, navigate to files)
-- Persist its conversation across restarts
+Swap in `~/.tmux.conf`:
+
+```bash
+set -g @ide-agent "claude"   # swap AI agent
+set -g @ide-editor "emacs"   # swap editor
+```
 
 ---
 
 ## Components
 
-### 1. tmux Layer (Window Manager + Session Framework)
+### tmux Layer
 
 | Plugin | Purpose |
 |--------|---------|
-| [tmux-ide](https://github.com/guysoft/tmux-ide) | Creates the 3-pane IDE layout with `prefix + e` |
-| [tmux-resurrect](https://github.com/tmux-plugins/tmux-resurrect) | Saves/restores tmux sessions (panes, layout, directories) |
-| [tmux-continuum](https://github.com/tmux-plugins/tmux-continuum) | Auto-saves every 15 min, auto-restores on tmux start |
-| [tmux-resurrect-opencode-sessions](https://github.com/guysoft/tmux-resurrect-opencode-sessions) | Preserves AI agent sessions across restarts |
-| [vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator) | Seamless `Ctrl-h/j/k/l` navigation between vim and tmux panes |
-| [tpack](https://github.com/tmuxpack/tpack) | Plugin manager (modern TPM replacement) |
+| [tmux-ide](https://github.com/guysoft/tmux-ide) | 3-pane IDE layout (`prefix + e`) |
+| [tmux-resurrect](https://github.com/tmux-plugins/tmux-resurrect) | Save/restore sessions |
+| [tmux-continuum](https://github.com/tmux-plugins/tmux-continuum) | Auto-save every 15 min |
+| [tmux-resurrect-opencode-sessions](https://github.com/guysoft/tmux-resurrect-opencode-sessions) | Preserve AI conversations across restarts |
+| [vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator) | Seamless pane navigation |
 
-### 2. Editor Layer (NvGuy — Neovim Distribution)
+### Editor Layer — [NvGuy](https://github.com/guysoft/NvGuy)
 
-[NvGuy](https://github.com/guysoft/NvGuy) is a neovim distribution built on NvChad that adds:
+Neovim distribution (NvChad-based) with:
+- Menu bar via vim-quickui (13 menus)
+- [vscodium.nvim](https://github.com/guysoft/vscodium.nvim) — VSCode-like Run/Debug, reads `launch.json`
+- Full DAP debugger + UI panels
+- Session management (auto-save per directory)
+- Git UI (Neogit + Gitsigns)
 
-- **Menu bar** via vim-quickui — 13 menus covering all operations (`F10`)
-- **Run/Debug** via [vscodium.nvim](https://github.com/guysoft/vscodium.nvim) — reads `.vscode/launch.json`, runs in tmux pane, debugs via nvim-dap
-- **Full DAP setup** — mason-nvim-dap auto-installs debugpy, delve, etc.
-- **Session management** — possession.nvim with auto-save per working directory
-- **Git UI** — Neogit (magit-style) + Gitsigns
-- **Code minimap** — mini.map sidebar
-- **LSP, Treesitter, Telescope, nvim-tree** — all from NvChad base
+### AI Agent Layer — [OpenCode](https://opencode.ai)
 
-### 3. AI Agent Layer (OpenCode)
-
-[OpenCode](https://opencode.ai) is a terminal-based AI coding agent. In GuyIDE it:
-
-- Runs in the right pane with full terminal access
-- Continues sessions across restarts (via tmux-resurrect-opencode-sessions)
-- Can control the debugger via the debug-reach skill
-- Has access to project files and the terminal pane
+Terminal AI coding agent that:
+- Lives in the right pane with full project access
+- Persists conversations across restarts
+- Controls the debugger via the **debug-reach** skill
+- Reads terminal output from other panes
 
 ---
 
-## Installation
+## AI Debugging Setup (debug-reach skill)
 
-### Prerequisites
+The debug-reach skill lets the AI agent control nvim's debugger. It ships with vscodium.nvim.
 
-- Linux, macOS, or Windows (via WSL)
-- git, curl
-- Node.js >= 18 (for OpenCode)
-- Neovim >= 0.9
-- tmux >= 2.0
-- sqlite3 (for session restoration)
-
-### Step 1: Install tmux and Plugins
+### Install the skill
 
 ```bash
-# Install tpack (tmux plugin manager)
-brew install tmuxpack/tpack/tpack
-# Or see: https://github.com/tmuxpack/tpack#installation
+# If you installed NvGuy, the skill is already bundled
+# Otherwise, grab it from vscodium.nvim:
+git clone https://github.com/guysoft/vscodium.nvim.git /tmp/vscodium-nvim
+mkdir -p ~/.opencode/skills
+cp -r /tmp/vscodium-nvim/.opencode/skills/debug-reach ~/.opencode/skills/
+```
 
-# Add to ~/.tmux.conf:
-cat >> ~/.tmux.conf << 'EOF'
+### Use it
+
+Just ask the AI to debug something:
+
+```
+"Debug why test_login fails — step through it"
+"Set a breakpoint at main.py:42 and check what x is"
+"Find what value user_id has when the error occurs"
+```
+
+The AI handles breakpoints, launches the session, inspects state, and reports back.
+
+### How it works (under the hood)
+
+All three components collaborate:
+
+| Component | Role |
+|-----------|------|
+| [tmux-ide](https://github.com/guysoft/tmux-ide) | Exposes `NVIM_IDE_SOCK` (nvim's RPC socket) to the tmux session |
+| [vscodium.nvim](https://github.com/guysoft/vscodium.nvim) | Provides `debug-rpc.lua` — the RPC API the agent calls |
+| [NvGuy](https://github.com/guysoft/NvGuy) | Wires up nvim-dap, dap-ui, mason-nvim-dap |
+
+---
+
+## Full Installation Details
+
+<details>
+<summary>Complete tmux.conf reference</summary>
+
+```bash
 set -g prefix C-a
 unbind C-b
 bind C-a send-prefix
@@ -182,241 +263,50 @@ bind % split-window -h -c "#{pane_current_path}"
 
 # Initialize tpack (keep at very bottom)
 run 'tpack init'
-EOF
-
-# Install plugins
-tmux source ~/.tmux.conf
-# Then in tmux: prefix + I
 ```
 
-### Step 2: Install NvGuy (Neovim Distribution)
+</details>
+
+<details>
+<summary>Prerequisites</summary>
+
+- git, curl
+- tmux >= 2.0
+- Neovim >= 0.9
+- Node.js >= 18 (for OpenCode)
+- sqlite3 (for session restoration)
+- [tpack](https://github.com/tmuxpack/tpack) or [TPM](https://github.com/tmux-plugins/tpm) (plugin manager)
+
+</details>
+
+<details>
+<summary>Step-by-step with TPM instead of tpack</summary>
+
+If you prefer TPM over tpack, replace `run 'tpack init'` with:
 
 ```bash
-# Back up existing config
-mv ~/.config/nvim ~/.config/nvim.bak
-
-# Clone NvGuy
-git clone https://github.com/guysoft/NvGuy.git ~/.config/nvim
-
-# Launch nvim — plugins install automatically
-nvim
+set -g @plugin 'tmux-plugins/tpm'
+run '~/.tmux/plugins/tpm/tpm'
 ```
 
-### Step 3: Install OpenCode (AI Agent)
+Then press `prefix + I` to install plugins.
 
-```bash
-# Install OpenCode
-curl -fsSL https://opencode.ai/install | bash
-
-# Verify
-opencode --version
-```
-
-### Step 4: Install the debug-reach Skill
-
-The debug-reach skill lets OpenCode control nvim's debugger. It ships with vscodium.nvim:
-
-```bash
-# Copy the skill to your OpenCode skills directory
-cp -r ~/.config/nvim/lua/nvim-launch/../../../.opencode/skills/debug-reach \
-    ~/.opencode/skills/debug-reach
-
-# Or if using vscodium.nvim standalone:
-git clone https://github.com/guysoft/vscodium.nvim.git /tmp/vscodium-nvim
-cp -r /tmp/vscodium-nvim/.opencode/skills/debug-reach ~/.opencode/skills/debug-reach
-```
-
-### Step 5: Create Your First IDE Session
-
-```bash
-# Start tmux
-tmux
-
-# Navigate to a project
-cd ~/your-project
-
-# Press Ctrl-a e to create the IDE layout
-# Or from command line:
-ide ~/your-project
-```
-
----
-
-## Key Bindings
-
-### tmux (prefix: `Ctrl-a`)
-
-| Binding | Action |
-|---------|--------|
-| `Ctrl-a e` | Create IDE layout (editor + agent + terminal) |
-| `Ctrl-a h/j/k/l` | Navigate between panes (vim-style) |
-| `Ctrl-a c` | New window (in current directory) |
-| `Ctrl-a "` | Split horizontal (in current directory) |
-| `Ctrl-a %` | Split vertical (in current directory) |
-| `Ctrl-a Ctrl-s` | Save session (tmux-resurrect) |
-| `Ctrl-a Ctrl-r` | Restore session (tmux-resurrect) |
-| `Ctrl-a r` | Reload tmux config |
-
-### Neovim (NvGuy)
-
-| Binding | Action |
-|---------|--------|
-| `F10` / `<leader>m` | Open menu bar |
-| `F5` | Run without debugging |
-| `F6` | Start debugging |
-| `F9` | Toggle breakpoint |
-| `F11` | Step into |
-| `Shift-F11` | Step out |
-| `Shift-F5` | Stop debugger |
-| `Ctrl-F5` | Run last configuration |
-| `Ctrl-F6` | Debug last configuration |
-| `<leader>du` | Toggle debug UI |
-
----
-
-## Usage
-
-### Basic Workflow
-
-1. **Open tmux** and navigate to your project
-2. **Press `Ctrl-a e`** — the IDE layout appears: nvim (top-left), terminal (bottom-left), OpenCode (right)
-3. **Edit code** in nvim with full LSP, completion, and git integration
-4. **Ask the AI** in the OpenCode pane — it can see your project, run commands, and control the debugger
-5. **Run/Debug** via the Run menu (`F10` → Run) or keybindings (`F5`/`F6`)
-6. **Close your laptop** — tmux-continuum saves state every 15 minutes
-7. **Reopen** — everything is restored: layout, editor session, AI conversation
-
-### AI-Driven Debugging Workflow
-
-1. Tell the AI agent: "debug why `process_data()` returns None"
-2. The AI sets a breakpoint at the suspicious line via RPC
-3. The AI launches the debug session
-4. The debugger hits the breakpoint — dap-ui opens showing variables
-5. The AI inspects local variables, evaluates expressions
-6. The AI reports: "Found it — `data` is None because the API returned 404 on line 38"
-
-### Run Without Debugging
-
-1. Create a `.vscode/launch.json` in your project (or let vscodium.nvim generate one)
-2. Press `F5` or use the Run menu
-3. Output appears in the terminal pane (bottom-left)
-
----
-
-## Alternative Components
-
-GuyIDE's power is the workflow, not any specific tool. Swap components as you prefer:
-
-| Layer | Default | Swap for... |
-|-------|---------|-------------|
-| Window Manager | tmux | zellij, screen, i3/sway (tiling WM) |
-| Editor | NvGuy (neovim) | Emacs (with dap-mode), Helix, Vim, Kakoune |
-| AI Agent | OpenCode | Claude Code, Aider, Goose, Copilot CLI |
-| Plugin Manager | tpack | TPM |
-| Theme | tmux-oasis | catppuccin, dracula, gruvbox |
-
-To swap the AI agent, set in `~/.tmux.conf`:
-
-```bash
-set -g @ide-agent "claude"  # or "aider", "goose", etc.
-```
-
-To swap the editor:
-
-```bash
-set -g @ide-editor "emacs"  # or "hx", "vim", etc.
-```
-
----
-
-## Screenshots
-
-<!-- TODO: Add screenshots demonstrating each feature -->
-
-### IDE Layout
-*Screenshot: The 3-pane layout with nvim, OpenCode, and terminal*
-
-![IDE Layout](screenshots/ide-layout.png)
-
-### AI-Driven Debugging
-*Screenshot: AI setting breakpoints and inspecting state via debug-reach*
-
-![Debug Reach](screenshots/debug-reach.png)
-
-### Menu Bar
-*Screenshot: NvGuy's quickui menu bar with Run menu open*
-
-![Menu Bar](screenshots/menu-bar.png)
-
-### Session Restore
-*Screenshot: Full IDE restored after tmux restart — same AI conversation, same editor state*
-
-![Session Restore](screenshots/session-restore.png)
-
-### Debug UI
-*Screenshot: nvim-dap-ui panels showing scopes, watches, stack frames*
-
-![Debug UI](screenshots/debug-ui.png)
-
----
-
-## Skill Setup (debug-reach)
-
-The **debug-reach** skill allows the AI agent to programmatically control nvim's DAP debugger. It requires all three components working together:
-
-| Component | Repo | Role |
-|-----------|------|------|
-| tmux-ide | [guysoft/tmux-ide](https://github.com/guysoft/tmux-ide) | Exposes `NVIM_IDE_SOCK` so the agent discovers nvim's RPC socket |
-| vscodium.nvim | [guysoft/vscodium.nvim](https://github.com/guysoft/vscodium.nvim) | Provides `debug-rpc.lua` module and the skill instructions |
-| NvGuy | [guysoft/NvGuy](https://github.com/guysoft/NvGuy) | Wires up nvim-dap, dap-ui, mason-nvim-dap, and the Run menu |
-
-### How it works
-
-1. tmux-ide launches nvim with `--listen $NVIM_IDE_SOCK`
-2. The AI agent discovers the socket via `tmux show-environment NVIM_IDE_SOCK`
-3. The agent calls `debug-rpc.lua` functions via `nvim --server $SOCK --remote-expr`
-4. Breakpoints are hit, dap-ui auto-opens, and the agent inspects state
-
-### Installing the skill
-
-```bash
-# The skill lives in vscodium.nvim's repo
-# If you installed NvGuy (which includes vscodium.nvim), it's already available
-
-# For OpenCode, ensure the skill is in your skills directory:
-mkdir -p ~/.opencode/skills
-cp -r /path/to/vscodium.nvim/.opencode/skills/debug-reach ~/.opencode/skills/
-
-# Verify it's loaded — in OpenCode, the debug-reach skill should appear
-# when you ask about debugging
-```
-
-### Using the skill
-
-In OpenCode, simply ask it to debug something:
-
-```
-"Set a breakpoint at main.py line 42 and run the debugger"
-"Debug why test_login fails — step through it"
-"Find what value `user_id` has when the error occurs"
-```
-
-The AI handles the rest — setting breakpoints, launching sessions, inspecting state, and reporting findings.
+</details>
 
 ---
 
 ## Contributing
 
-Contributions welcome! Each component has its own repo:
+Each component has its own repo:
 
-- **tmux-ide**: https://github.com/guysoft/tmux-ide
-- **vscodium.nvim**: https://github.com/guysoft/vscodium.nvim
-- **NvGuy**: https://github.com/guysoft/NvGuy
-- **tmux-resurrect-opencode-sessions**: https://github.com/guysoft/tmux-resurrect-opencode-sessions
+| Component | Repo |
+|-----------|------|
+| tmux-ide | https://github.com/guysoft/tmux-ide |
+| vscodium.nvim | https://github.com/guysoft/vscodium.nvim |
+| NvGuy | https://github.com/guysoft/NvGuy |
+| tmux-resurrect-opencode-sessions | https://github.com/guysoft/tmux-resurrect-opencode-sessions |
 
-For GuyIDE meta-repo issues (documentation, integration, workflow ideas): open an issue here.
-
----
+For GuyIDE meta-repo issues (documentation, integration, workflow): open an issue here.
 
 ## License
 

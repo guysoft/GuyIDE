@@ -277,6 +277,11 @@ run 'tpack init'
 - sqlite3 (for session restoration)
 - [tpack](https://github.com/tmuxpack/tpack) or [TPM](https://github.com/tmux-plugins/tpm) (plugin manager)
 
+> **`tpack` PATH note:** `tpack` installs to `$GOPATH/bin` (typically `~/go/bin`). Either add that to your `PATH`, or use the absolute path in `~/.tmux.conf`:
+> ```
+> run '~/go/bin/tpack init'
+> ```
+
 </details>
 
 <details>

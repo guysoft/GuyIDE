@@ -2,6 +2,8 @@
 
 A modular terminal IDE where your AI agent can **control the debugger**, your sessions **survive restarts**, and everything runs in the terminal.
 
+![AI paused at a breakpoint with full DAP UI — Locals, Stack, source marker, AI explaining the state](screenshots/ai-debugging-paused-at-breakpoint.png)
+
 ```
 +---------------------------+--------------+
 |                           |              |
@@ -131,18 +133,6 @@ cd ~/your-project
 - Fuzzy finder for files, buffers, symbols, diagnostics (Telescope)
 - Code formatting via conform.nvim
 - Tmux prefix: `Ctrl-a` (screen-style)
-
----
-
-## Screenshots
-
-| Feature | Screenshot |
-|---------|-----------|
-| AI Debugging | ![AI paused at a breakpoint with full DAP UI — Locals, Stack, source marker, AI explaining the state](screenshots/ai-debugging-paused-at-breakpoint.png) |
-| IDE Layout | ![IDE Layout](screenshots/ide-layout.png) |
-| Menu Bar | ![Menu Bar](screenshots/menu-bar.png) |
-| Session Restore | ![Session Restore](screenshots/session-restore.png) |
-| Debug UI | ![Debug UI](screenshots/debug-ui.png) |
 
 ---
 

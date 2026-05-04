@@ -48,7 +48,14 @@ git clone https://github.com/guysoft/tmux-ide ~/.tmux/plugins/tmux-ide
 ### 2. NvGuy (neovim distribution)
 
 ```bash
-mv ~/.config/nvim ~/.config/nvim.bak  # backup existing config
+# Backup existing nvim config + plugin data + state
+BACKUP=~/.nvim-backup-$(date +%Y%m%d-%H%M%S)
+mkdir -p "$BACKUP"
+mv ~/.config/nvim       "$BACKUP/nvim"       2>/dev/null || true
+mv ~/.local/share/nvim  "$BACKUP/nvim-data"  2>/dev/null || true
+mv ~/.local/state/nvim  "$BACKUP/nvim-state" 2>/dev/null || true
+echo "Backed up to $BACKUP"
+
 git clone https://github.com/guysoft/NvGuy.git ~/.config/nvim
 nvim  # plugins install automatically on first launch
 ```

@@ -136,12 +136,10 @@ cd ~/your-project
 
 ## Screenshots
 
-<!-- TODO: Add screenshots -->
-
 | Feature | Screenshot |
 |---------|-----------|
+| AI Debugging | ![AI paused at a breakpoint with full DAP UI — Locals, Stack, source marker, AI explaining the state](screenshots/ai-debugging-paused-at-breakpoint.png) |
 | IDE Layout | ![IDE Layout](screenshots/ide-layout.png) |
-| AI Debugging | ![Debug Reach](screenshots/debug-reach.png) |
 | Menu Bar | ![Menu Bar](screenshots/menu-bar.png) |
 | Session Restore | ![Session Restore](screenshots/session-restore.png) |
 | Debug UI | ![Debug UI](screenshots/debug-ui.png) |

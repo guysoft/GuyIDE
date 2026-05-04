@@ -184,6 +184,32 @@ set -g @ide-editor "emacs"   # swap editor
 
 ---
 
+## Themes
+
+GuyIDE ships with a default theme and an optional alternative. Pick one in `~/.tmux.conf`.
+
+### Oasis (default)
+
+```bash
+set -g @plugin 'uhs-robert/tmux-oasis'
+set -g @oasis_flavor "lagoon"   # also: night, midnight, abyss, starlight, desert,
+                                # sol, canyon, dune, cactus, mirage, twilight,
+                                # rose, dawn, dawnlight, day, dusk, dust
+set -g status-position top
+```
+
+### Dracula (alternative)
+
+```bash
+set -g @plugin 'dracula/tmux'
+set -g @dracula-show-powerline true
+set -g @dracula-show-left-icon session
+set -g @dracula-plugins "cpu-usage"
+set -g status-position top
+```
+
+---
+
 ## Components
 
 ### tmux Layer
@@ -295,6 +321,19 @@ set -g @plugin 'guysoft/tmux-ide'
 # Session restore (continuum auto-saves every 15 min)
 set -g @continuum-restore 'on'
 set -g @resurrect-processes '~opencode'
+
+# === Theme: Oasis (default) ===
+set -g @plugin 'uhs-robert/tmux-oasis'
+set -g @oasis_flavor "lagoon"
+set -g status-position top
+
+# === Theme: Dracula (alternative) ===
+# Comment the Oasis block above and uncomment below to switch
+# set -g @plugin 'dracula/tmux'
+# set -g @dracula-show-powerline true
+# set -g @dracula-show-left-icon session
+# set -g @dracula-plugins "cpu-usage"
+# set -g status-position top
 
 # Initialize tpack (must stay at very bottom)
 run '~/go/bin/tpack init'

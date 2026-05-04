@@ -79,10 +79,18 @@ git clone https://github.com/guysoft/NvGuy.git ~/.config/nvim
 nvim  # plugins install automatically on first launch
 ```
 
+> **Known issue (NvGuy on Linux):** at the time of writing, NvGuy's `lua/plugins/init.lua` may pin `vscodium.nvim` to a hardcoded macOS dev path (`/Users/guyshe/...`). If `:Lazy` reports a missing directory, edit that line to `"guysoft/vscodium.nvim"` and run `:Lazy sync`. Track the upstream fix in [NvGuy issues](https://github.com/guysoft/NvGuy/issues).
+
 ### 3. OpenCode (AI agent)
 
 ```bash
 curl -fsSL https://opencode.ai/install | bash
+
+# Install the debug-reach skill (lets the AI control nvim's debugger).
+# After NvGuy's first launch, vscodium.nvim is on disk under ~/.local/share/nvim/lazy/
+mkdir -p ~/.config/opencode/skills
+cp -r ~/.local/share/nvim/lazy/vscodium.nvim/.opencode/skills/debug-reach \
+      ~/.config/opencode/skills/
 ```
 
 ### 4. Launch
@@ -239,6 +247,20 @@ Terminal AI coding agent that:
 - Controls the debugger via the **debug-reach** skill
 - Reads terminal output from other panes
 
+#### Bundled OpenCode Skills
+
+GuyIDE expects these skills installed under `~/.config/opencode/skills/`:
+
+| Skill | Purpose | Source |
+|-------|---------|--------|
+| `debug-reach` | Lets the AI control nvim's debugger via RPC | bundled in [vscodium.nvim](https://github.com/guysoft/vscodium.nvim) (`.opencode/skills/debug-reach`) |
+
+Verify after install:
+
+```bash
+ls ~/.config/opencode/skills/debug-reach/SKILL.md
+```
+
 ---
 
 ## AI Debugging Setup (debug-reach skill)
@@ -247,12 +269,26 @@ The debug-reach skill lets the AI agent control nvim's debugger. It ships with v
 
 ### Install the skill
 
+The skill lives inside [vscodium.nvim](https://github.com/guysoft/vscodium.nvim). If you installed NvGuy, vscodium.nvim is already on disk under `~/.local/share/nvim/lazy/vscodium.nvim/` — just copy the skill from there:
+
 ```bash
-# If you installed NvGuy, the skill is already bundled
-# Otherwise, grab it from vscodium.nvim:
+mkdir -p ~/.config/opencode/skills
+cp -r ~/.local/share/nvim/lazy/vscodium.nvim/.opencode/skills/debug-reach \
+      ~/.config/opencode/skills/
+```
+
+If you don't run NvGuy, clone vscodium.nvim directly:
+
+```bash
 git clone https://github.com/guysoft/vscodium.nvim.git /tmp/vscodium-nvim
 mkdir -p ~/.config/opencode/skills
 cp -r /tmp/vscodium-nvim/.opencode/skills/debug-reach ~/.config/opencode/skills/
+```
+
+Verify:
+
+```bash
+ls ~/.config/opencode/skills/debug-reach/SKILL.md
 ```
 
 ### Use it

@@ -44,6 +44,18 @@ curl -fsSL https://github.com/guysoft/guyide-cli/releases/latest/download/guyide
 guyide install
 ```
 
+#### Dev channel (latest `main` of every component)
+
+Want the bleeding edge? Run on the `dev` channel — `main` HEAD of NvGuy, vscodium.nvim, tmux-ide and friends, with no compat gating.
+
+```bash
+curl -fsSL https://github.com/guysoft/guyide-cli/releases/latest/download/guyide-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m) \
+  -o ~/.local/bin/guyide && chmod +x ~/.local/bin/guyide
+guyide install --channel dev
+```
+
+You can flip an existing install at any time with `guyide channel set dev` (or back with `guyide channel set stable`), then `guyide update` to pull the new refs.
+
 That's it. The installer:
 
 1. Backs up any existing `~/.tmux.conf`, `~/.config/nvim`, and related state under `~/.guyide/backups/<timestamp>/` (kept forever).

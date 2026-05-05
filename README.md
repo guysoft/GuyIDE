@@ -34,74 +34,48 @@ One keybinding. Full IDE. Close your laptop, reopen — everything is exactly wh
 
 ## Quick Start
 
-Works on Linux, macOS, and Windows (WSL).
+Works on Linux and macOS (Intel + Apple Silicon). Windows users: run inside WSL.
 
-### 1. tmux + plugins
-
-```bash
-# --- 1a. Backup any existing tmux config ---
-[ -f ~/.tmux.conf ] && cp ~/.tmux.conf ~/.tmux.conf.bak.$(date +%Y%m%d-%H%M%S)
-
-# --- 1b. Install tpack (plugin manager) ---
-# macOS:
-brew install tmuxpack/tpack/tpack
-# Linux / anywhere with Go:
-#   go install github.com/tmuxpack/tpack@latest
-#   # tpack lands in $GOPATH/bin (typically ~/go/bin) — make sure it's on PATH
-#   # or reference the absolute path in ~/.tmux.conf as shown below.
-
-# --- 1c. Drop in the canonical ~/.tmux.conf ---
-# Copy from the "Complete tmux.conf reference" block at the bottom of this README
-# into ~/.tmux.conf. The file *must* end with `run '~/go/bin/tpack init'`
-# (or `run 'tpack init'` if tpack is on your PATH).
-
-# --- 1d. Install all declared plugins ---
-# Either run tpack directly:
-tpack install              # or: ~/go/bin/tpack install
-# Or, from inside a running tmux session:  prefix + I   (capital i)
-
-# --- 1e. Wire up the IDE layout helper ---
-~/.tmux/plugins/tmux-ide/install.sh
-```
-
-> **Heads-up:** if a tmux server is already running with a different prefix, kill it before reloading: `tmux kill-server`. Then `tmux` to start fresh.
-
-### 2. NvGuy (neovim distribution)
+### One command
 
 ```bash
-# Backup existing nvim config + plugin data + state
-BACKUP=~/.nvim-backup-$(date +%Y%m%d-%H%M%S)
-mkdir -p "$BACKUP"
-mv ~/.config/nvim       "$BACKUP/nvim"       2>/dev/null || true
-mv ~/.local/share/nvim  "$BACKUP/nvim-data"  2>/dev/null || true
-mv ~/.local/state/nvim  "$BACKUP/nvim-state" 2>/dev/null || true
-echo "Backed up to $BACKUP"
-
-git clone https://github.com/guysoft/NvGuy.git ~/.config/nvim
-nvim  # plugins install automatically on first launch
+curl -fsSL https://github.com/guysoft/guyide-cli/releases/latest/download/guyide-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m) \
+  -o ~/.local/bin/guyide && chmod +x ~/.local/bin/guyide
+guyide install
 ```
 
-> **Known issue (NvGuy on Linux):** at the time of writing, NvGuy's `lua/plugins/init.lua` may pin `vscodium.nvim` to a hardcoded macOS dev path (`/Users/guyshe/...`). If `:Lazy` reports a missing directory, edit that line to `"guysoft/vscodium.nvim"` and run `:Lazy sync`. Track the upstream fix in [NvGuy issues](https://github.com/guysoft/NvGuy/issues).
+That's it. The installer:
 
-### 3. OpenCode (AI agent)
+1. Backs up any existing `~/.tmux.conf`, `~/.config/nvim`, and related state under `~/.guyide/backups/<timestamp>/` (kept forever).
+2. Lays down NvGuy, the canonical `~/.tmux.conf`, and your AI agent (OpenCode by default) under `~/.guyide/`.
+3. Symlinks `~/.config/nvim` → `~/.guyide/components/nvim` and `~/.local/bin/guyide` → `~/.guyide/bin/guyide`.
+4. Runs `guyide doctor` to confirm the install is healthy.
+5. Asks: **"Start GuyIDE now? [Y/n]"** — answer yes and it drops you straight into nvim with a `WELCOME.md` cheatsheet that explains how to enter IDE mode, save sessions, and reach the menu.
+
+### What you'll see on first launch
+
+The welcome cheatsheet teaches you the five keys you actually need:
+
+| Keys | What it does |
+|---|---|
+| `Ctrl-a e` | Enter IDE mode (3-pane layout) |
+| `Ctrl-a d` | Detach from tmux (your session keeps running) |
+| `Ctrl-a Ctrl-r` | Restore the last saved session |
+| `Ctrl-a ?` | Show the full list of tmux commands |
+| `Space m` | Open the neovim menu bar (when the nvim pane is focused) |
+
+### Day two
 
 ```bash
-curl -fsSL https://opencode.ai/install | bash
-
-# Install the debug-reach skill (lets the AI control nvim's debugger).
-# After NvGuy's first launch, vscodium.nvim is on disk under ~/.local/share/nvim/lazy/
-mkdir -p ~/.config/opencode/skills
-cp -r ~/.local/share/nvim/lazy/vscodium.nvim/.opencode/skills/debug-reach \
-      ~/.config/opencode/skills/
+guyide doctor          # health check
+guyide update          # pull latest stable refs (gated by compat matrix)
+guyide channel set dev # opt into bleeding edge
+guyide uninstall       # restore from the most recent backup
 ```
 
-### 4. Launch
+> **Channels:** `stable` tracks the last validated `(NvGuy, vscodium.nvim, ...)` triple baked into the `guyide` binary. `dev` tracks `main` HEAD on every component with no compat gating.
 
-```bash
-tmux
-cd ~/your-project
-# Press Ctrl-a e — IDE layout appears
-```
+> **Custom prefix or driver?** Edit `~/.guyide/config.yaml` and re-run `guyide install` — the installer is idempotent.
 
 ---
 
@@ -304,6 +278,67 @@ All three components collaborate:
 ---
 
 ## Full Installation Details
+
+> Most users should not need this section — `guyide install` does everything below for you. Read on if you want to set up the stack manually, or to understand what the installer is actually doing.
+
+<details>
+<summary>Manual install (no <code>guyide</code> binary)</summary>
+
+### 1. tmux + plugins
+
+```bash
+# --- 1a. Backup any existing tmux config ---
+[ -f ~/.tmux.conf ] && cp ~/.tmux.conf ~/.tmux.conf.bak.$(date +%Y%m%d-%H%M%S)
+
+# --- 1b. Install tpack (plugin manager) ---
+# macOS:
+brew install tmuxpack/tpack/tpack
+# Linux / anywhere with Go:
+#   go install github.com/tmuxpack/tpack@latest
+
+# --- 1c. Drop in the canonical ~/.tmux.conf ---
+# See the "Complete tmux.conf reference" block below.
+
+# --- 1d. Install all declared plugins ---
+tpack install              # or: ~/go/bin/tpack install
+# Or, from inside a running tmux session:  prefix + I
+
+# --- 1e. Wire up the IDE layout helper ---
+~/.tmux/plugins/tmux-ide/install.sh
+```
+
+### 2. NvGuy (neovim distribution)
+
+```bash
+BACKUP=~/.nvim-backup-$(date +%Y%m%d-%H%M%S)
+mkdir -p "$BACKUP"
+mv ~/.config/nvim       "$BACKUP/nvim"       2>/dev/null || true
+mv ~/.local/share/nvim  "$BACKUP/nvim-data"  2>/dev/null || true
+mv ~/.local/state/nvim  "$BACKUP/nvim-state" 2>/dev/null || true
+
+git clone https://github.com/guysoft/NvGuy.git ~/.config/nvim
+nvim  # plugins install automatically on first launch
+```
+
+### 3. OpenCode (AI agent)
+
+```bash
+curl -fsSL https://opencode.ai/install | bash
+
+mkdir -p ~/.config/opencode/skills
+cp -r ~/.local/share/nvim/lazy/vscodium.nvim/.opencode/skills/debug-reach \
+      ~/.config/opencode/skills/
+```
+
+### 4. Launch
+
+```bash
+tmux
+cd ~/your-project
+# Press Ctrl-a e — IDE layout appears
+```
+
+</details>
 
 <details>
 <summary>Complete tmux.conf reference</summary>
